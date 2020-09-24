@@ -163,7 +163,7 @@ def test_delete_referenced(historian: mincepy.Historian):
     except mincepy.ReferenceError as exc:
         assert exc.references == {car.obj_id}
     else:
-        assert "Reference error should have been raised"
+        assert False, "Reference error should have been raised"
 
     historian.delete(garage)
     # Now safe to delete car
@@ -175,3 +175,28 @@ def test_delete_referenced(historian: mincepy.Historian):
 
     # Now, check that deleting both together works
     historian.delete(car, garage)
+
+
+def test_concurrent_modification(historian: mincepy.Historian, archive_uri: str):
+    # Create a second historian connected to the same archive
+    historian2 = mincepy.connect(archive_uri, use_globally=False)
+    ferrari = testing.Car(colour='red', make='ferrari')
+    ferrari_id = historian.save(ferrari)
+    ferrari2 = historian2.load(ferrari_id)
+
+    assert ferrari_id == ferrari2.obj_id
+    assert ferrari is not ferrari2, \
+        "The archive don't know about each other so the objects instances should not be the same"
+
+    # Repaint
+    ferrari.colour = 'yellow'
+    historian.save(ferrari)
+
+    # Now change ferrari2 and see what happens
+    ferrari2.colour = 'green'
+    with pytest.raises(mincepy.ModificationError):
+        historian2.save(ferrari2)
+
+    # Now, let's sync up
+    assert historian2.sync(ferrari2), "ferrari2 hasn't been updated"
+    assert ferrari2.colour == 'yellow'

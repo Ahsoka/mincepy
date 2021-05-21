@@ -20,10 +20,10 @@ setup(
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
     ],
     keywords='database schemaless nosql orm object-store concurrent optimistic-locking',
     install_requires=[
